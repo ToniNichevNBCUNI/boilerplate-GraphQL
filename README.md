@@ -44,13 +44,19 @@ mvn clean install
 
 ### Running the Application
 
-#### Option 1: Using Maven (Recommended for Development)
+#### Option 1: Using Scripts (Easiest)
+```bash
+./start.sh    # Start the application
+./stop.sh     # Stop the application
+```
+
+#### Option 2: Using Maven
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 mvn spring-boot:run
 ```
 
-#### Option 2: Using JAR
+#### Option 3: Using JAR
 ```bash
 java -jar target/quote-graph-1.0.0.jar
 ```
