@@ -1,22 +1,25 @@
-# QuoteGraph - GraphQL Quote Service
+# QuoteGraph - GraphQL Quote Service (Apollo Federation Subgraph)
 
-A Spring Boot GraphQL API service for retrieving real-time stock quote data using Netflix DGS framework.
+A Spring Boot GraphQL API service for retrieving real-time stock quote data using Netflix DGS framework with Apollo Federation v2 support.
 
 ## Overview
 
-QuoteGraph is a microservice that provides a GraphQL interface for querying stock market quotes. It leverages the Netflix DGS (Domain Graph Service) framework to deliver a modern, type-safe GraphQL API.
+QuoteGraph is a **federated GraphQL subgraph** that provides quote data for stock symbols. It's designed to work with Apollo Router as part of a supergraph architecture, allowing other subgraphs to reference and extend quote information.
 
 ## Features
 
-- 🚀 GraphQL API for stock quotes
+- 🚀 **Apollo Federation v2** subgraph
 - 📊 Query single or multiple stock symbols
+- 🔑 Entity resolution by symbol (federation key)
 - 🔧 Built with Netflix DGS framework
 - 🌐 Interactive GraphiQL playground
 - ☕ Java 17 + Spring Boot 3.2.0
+- 🔗 Ready for Apollo Router integration
 
 ## Tech Stack
 
 - **Java 17**
+- **Apollo Federation 4.3.0** - Federation support
 - **Spring Boot 3.2.0**
 - **Netflix DGS 8.1.1** - GraphQL framework
 - **Lombok 1.18.36** - Reduce boilerplate code
@@ -144,23 +147,88 @@ dgs:
   graphql:
     schema-locations: classpath:graphql/**
 ```
-
-## GraphQL Schema
-
-The API exposes the following schema:
+**federated schema**:
 
 ```graphql
-type Query {
-    quote(symbol: String!): Quote
-    quotes(symbols: [String!]!): [Quote!]!
-}
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
 
-type Quote {
+type Quote @key(fields: "symbol") {
     id: ID!
     symbol: String!
     price: Float!
     change: Float!
     changePercent: Float!
+    volume: Int!
+    timestamp: String!
+}
+
+type Query {
+    quote(symbol: String!): Quote @shareable
+    quotes(symbols: [String!]!): [Quote!]! @shareable
+}
+```
+
+### Federation Features
+
+- **Entity**: `Quote` is a federated entity with `symbol` as the key
+- **@key(fields: "symbol")**: Allows other subgraphs to reference quotes by symbol
+- **@shareable**: Queries can be resolved by multiple subgraphs
+- **Entity Resolution**: Other subgraphs can extend Quote or reference it
+
+### Example: Using Quote in Another Subgraph
+
+```graphql
+# In another subgraph (e.g., portfolio-service)
+type Portfolio @key(fields: "id") {
+  id: ID!
+  holdings: [Holding!]!
+}
+
+type Holding {
+  symbol: String!
+  shares: Int!
+  quote: Quote  # References Quote from quote-graph subgraph
+}
+
+extend type Quote @key(fields: "symbol") {
+  symbol: String! @external
+  # This subgraph can add additional fields to Quote
+}
+```
+
+## Apollo Federation Setup
+
+### Subgraph Configuration
+
+This service exposes its schema at:
+- **Subgraph URL**: `http://localhost:8083/graphql`
+- **SDL Endpoint**: The schema is automatically available via introspection
+
+### Router Configuration
+
+To include this subgraph in your Apollo Router, add it to your `supergraph.yaml`:
+
+```yaml
+federation_version: =2.3.0
+subgraphs:
+  quote-graph:
+    routing_url: http://localhost:8083/graphql
+    schema:
+      subgraph_url: http://localhost:8083/graphql
+```
+
+### Compose Supergraph
+
+Using Rover CLI:
+```bash
+rover supergraph compose --config supergraph.yaml > supergraph-schema.graphql
+```
+
+### Start Apollo Router
+
+```bash
+./router --supergraph supergraph-schema.graphql   changePercent: Float!
     volume: Int!
     timestamp: String!
 }

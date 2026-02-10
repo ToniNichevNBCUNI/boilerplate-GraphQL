@@ -9,6 +9,8 @@ dgs:
   graphql:
     path: /graphql
     schema-locations: classpath:graphql/**
+  federation:
+    enabled: true
 
 logging:
   level:

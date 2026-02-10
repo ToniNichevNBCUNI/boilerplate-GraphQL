@@ -1,4 +1,7 @@
-type Quote {
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+type Quote @key(fields: "symbol") {
   id: ID!
   symbol: String!
   price: Float!
@@ -9,6 +12,6 @@ type Quote {
 }
 
 type Query {
-  quote(symbol: String!): Quote
-  quotes(symbols: [String!]!): [Quote!]!
+  quote(symbol: String!): Quote @shareable
+  quotes(symbols: [String!]!): [Quote!]! @shareable
 }
