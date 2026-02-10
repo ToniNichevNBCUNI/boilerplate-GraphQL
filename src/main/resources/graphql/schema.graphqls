@@ -1,0 +1,14 @@
+type Quote {
+  id: ID!
+  symbol: String!
+  price: Float!
+  change: Float!
+  changePercent: Float!
+  volume: Int!
+  timestamp: String!
+}
+
+type Query {
+  quote(symbol: String!): Quote
+  quotes(symbols: [String!]!): [Quote!]!
+}

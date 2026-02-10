@@ -1,0 +1,15 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: quote-graph
+
+dgs:
+  graphql:
+    path: /graphql
+    schema-locations: classpath:graphql/**
+
+logging:
+  level:
+    com.cnbc.quotegraph: DEBUG
